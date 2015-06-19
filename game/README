@@ -1,0 +1,37 @@
+All code in this directory is copyright (C) Dan Bennett, 2015
+This code may be used for academic purposes only.
+
+This is a simple implementation of Cthulhu Dice from Steve Jackson Games.
+
+We are not making any claim to any rights to this game and are using for 
+strictly academic purposes.
+
+This game is not to be played for entertainment, go buy a copy.
+
+Programs in this directory:
+
+dieTest : check to see if the die is working properly.
+    An eyeball test.  (Check to see if the distribution is right)
+
+playerTest: check to see if the player class is working properly.
+    It will crash if some operations are not proper
+
+
+Other Files:
+
+Makefile: Build the project, make, make clean.
+
+README: you go it.
+
+
+dice.C
+dice.h: Implementation of the die
+
+player.C
+player.h: Implementation of the player class
+
+Comments:
+
+I don't like c++ enums.  I feel I should use them because I teach them, but
+I really don't like them.   I implemented part of the dice class as an enum,
+but I have abandon the use of enums in all other aspects of this program.

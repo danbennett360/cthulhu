@@ -46,3 +46,7 @@ ostream& operator<<( ostream& s, StateT& t ){
      return s;
 }
 
+StateT RandomSidePick() {
+     return StateT(rand()%(STATES-1));
+}
+
