@@ -3,10 +3,13 @@
 
 #include "dice.h"
 #include <iostream>
+#include <string>
+
 
 
 // per the rules, but we may wish to play with this.
 const int START_SANITY = 3;
+const std::string PLAYER_VERSION = "1.0";
 
 
 // stratigies for when we roll an eye.
@@ -26,6 +29,7 @@ class PlayerT {
 	void GetToken();   // the player gets a token
 	void GiveToken();  // the player gives a token away
         StateT DecideResult(int role, int opponentTokens, int cthulhuToken);
+	void Reset();
     private:
         int sanity;
 	int id;

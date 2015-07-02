@@ -3,17 +3,28 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+
+const std::string DICE_VERSION = "1.0";
 
 enum StateT {YellowSign, Tentacle, ElderSign, Cthulhu, Eye};
 const int STATES = 5;
 
+typedef std::vector<StateT> StateVectorT;
 class DieT {
    public:
        DieT(); 
        StateT State();
        void Roll();
+       void Change(StateT value);
+       void ClearHistory(void);
+       StateVectorT GetHistory();
+       void RecordHistory();
+       void StopRecordingHistory();
    private:
-       int state;
+       bool keepHistory;
+       StateT state;
+       StateVectorT history;
 };
 
 
@@ -25,6 +36,8 @@ StateT RandomSidePick();
 
 
 std::string StateTToString(StateT t);
+char StateTToChar(StateT t);
+StateT CharToStateT(char c);
 
 std::ostream& operator<<( std::ostream& s, StateT& t );
 #endif

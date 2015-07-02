@@ -14,7 +14,15 @@ using namespace std;
 	  isSane = true;
           eyeStrategy = strat1;
 
+          return;
        }
+
+void PlayerT::Reset() {
+     isSane = true;
+     sanity= START_SANITY;
+     return;
+}
+
 bool   PlayerT::IsSane() {
       return sanity > 0;
 }

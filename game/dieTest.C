@@ -27,9 +27,42 @@ int main() {
        results[die.State()]++;
     }
 
+    cout << "Simulation of number of sides " << endl;
     for(j=YellowSign; j <= Eye; j= StateT(j + 1)) {
-       cout << StateTToString(j) << "   " << int(float(results[j])/TRIALS*12+.5) << endl;
+       cout << "\t" << StateTToString(j) << "   " 
+            << int(float(results[j])/TRIALS*12+.5) << endl;
     }
+
+    cout << endl;
+    cout << " Quick History Test " << endl;
+
+    die.RecordHistory();
+    die.Roll();
+    cout << "Just rolled " << StateTToString(die.State() ) << endl;
+    die.Roll();
+    cout << "Just rolled " << StateTToString(die.State() ) << endl;
+    die.Change(Eye);
+    cout << "Just rolled " << StateTToString(die.State() ) << endl;
+    die.Roll();
+    cout << "Just rolled " << StateTToString(die.State() ) << endl;
+
+
+    StateVectorT s;
+    s = die.GetHistory();
+    cout << " The last four rolls should be :" << endl;
+    for (i = 0; i < s.size(); i++) {
+        cout << "\t" << StateTToString(s[i]) << endl; 
+    }
+    cout << endl;
+
+    cout << "The next line should be blank " << endl;
+
+    die.ClearHistory();
+    s = die.GetHistory();
+    for (i = 0; i < s.size(); i++) {
+        cout << StateTToString(s[i]) << " "; 
+    }
+    cout << endl;
 
     return 0;
 }

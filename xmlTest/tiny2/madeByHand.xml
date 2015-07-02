@@ -1,0 +1,22 @@
+<CthulhuRun>
+    <Environment>
+        <Version>
+            <ProgramName>one</ProgramName>
+            <Dice>1.2</Dice>
+            <Player>1.0</Player>
+            <Rules>0.5</Rules>
+            <Program>1.0</Program>
+        </Version>
+        <Arguments>
+            <arg Position="1">-P1D</arg>
+            <arg Position="2">-P2D</arg>
+            <arg Position="3">-i</arg>
+            <arg Position="4">4000</arg>
+        </Arguments>
+        <Runtime>
+            <Host>mirkwood.cs.edinboro.edu</Host>
+            <Date>Mon Jun 29 14:03:08 2015</Date>
+        </Runtime>
+    </Environment>
+    <RunData/>
+</CthulhuRun>
