@@ -4,6 +4,11 @@
 #include <string>
 #include "player.h"
 
-int GetStrat(std::string s);
+int GetEyeStrat(std::string s);
+int GetVictimStrat(std::string s);
+void usage(char progname[]);
+void ParseEyeArgs(int argc, char * argv[], int &  position, int & player, int & strategy);
+int GetGamesArg(int argc, char * argv[], int & position);
+
 
 #endif

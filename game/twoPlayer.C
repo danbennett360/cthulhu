@@ -37,41 +37,19 @@ int main(int argc, char * argv[]) {
 
      i=1;
      while (i< argc) {
-         if( !strcmp(argv[i],"--p1")) {
-	     i++;
-	     if (i < argc) {
-	         p1Strat  = GetStrat(argv[i]);
-	         i++;
-	     } else {
-	         cerr << " --p1 requires an additional argument (D, F, ...)";
-		 cerr << "\t using random" << endl;
-		 cerr << endl;
-	     }
-	 } else if (!strcmp(argv[i],"--p2")) {
-	     i++;
-	     if (i < argc) {
-	         p2Strat  = GetStrat(argv[i]);
-	         i++;
-	     }  else {
-	         cerr << " --p1 requires an additional argument (D, F, ...)";
-		 cerr << "\t using random" << endl;
-		 cerr << endl;
+         if( !strcmp(argv[i],"--eye")) {
+	     int num, strat;
+	     ParseEyeArgs(argc, argv, i, num, strat);
+	     if (num == 0) {
+	         p1Strat = strat;
+	     } else  if (num == 1) {
+	         p2Strat = strat; 
 	     }
 	 } else if (!strcmp(argv[i],"--verbose")) {
              VERBOSE = true;
 	     i++;
 	 } else if (!strcmp(argv[i],"--games")) {
-	     i++;
-	     if (argc > i) {
-	        ITERATIONS = atoi(argv[i]);
-		i++;
-		if (ITERATIONS < 1) {
-		   ITERATIONS = 1;
-		}
-	     } else {
-	         cout << "--games requires an additional argument"
-		      << ", none supplied" << endl;
-	     }
+	     ITERATIONS = GetGamesArg(argc, argv, i);
 	 /*} else if (!strcmp(argv[i],"--raw") ) {
 	     if (argc >= i+1) {
 	         doRAWSave = true;

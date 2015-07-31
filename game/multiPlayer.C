@@ -32,7 +32,7 @@ int main(int argc, char * argv[]) {
     int totalTurns = 0;
     int actualPlayers = 3;
     int i;
-    int games;
+    int games = 1000;
     int turns;
     int num;
 
@@ -45,18 +45,20 @@ int main(int argc, char * argv[]) {
     i = 1;
     while (i < argc ) {
        if (!strcmp(argv[i],"--eye")) {
+           int strat;
+           ParseEyeArgs(argc, argv,i, num, strat);
+	   iStrat[num] = strat;
+       } else if (!strcmp(argv[i],"--victim")) {
            i++;
 	   if (i+1 < argc) {
 	       num =  atoi(argv[i])-1;
 	       i++;
-	       iStrat[num] = GetStrat(argv[i]);
+	       vStrat[num] = GetVictimStrat(argv[i]);
 	       i++;
 	   } else {
-	       cout << " --eye requires two parameters [num] and [D,P,F, R]"
+	       cout << " --victim requires two parameters [num] and [D,P,F, R]"
 	            << endl;
 	   }
-       } else if (!strcmp(argv[i],"--victim")) {
-           i++;
        } else if (!strcmp(argv[i],"--players")) {
            i++;
 	   if (i < argc) {
@@ -74,17 +76,15 @@ int main(int argc, char * argv[]) {
            i++;
            VERBOSE = true;
        } else if (!strcmp(argv[i],"--games")) {
-           i++;
-	   if (i < argc) {
-	       games = atoi(argv[i]) ;
-	       i++;
-	   } else {
-	       cout << "--games requires an integer argument" << endl;
-	   }
+           games = GetGamesArg(argc, argv, i);
+       } else if (!strcmp(argv[i],"--help") or !strcmp(argv[i],"-h") or !strcmp(argv[i],"?")) {
+           usage(argv[0]);
+	   return(1);
        } else {
            cout << "Can't deal with arg "
 	        << i << " which is " << argv[i] << endl;
            i++;
+	   usage(argv[0]);
        }
 
     }
