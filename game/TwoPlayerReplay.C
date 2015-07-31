@@ -65,7 +65,11 @@ int main(int argc, char * argv[]) {
       StateT casterRoll, victimRoll;
       StateT casterChoice, victimChoice;
 
-      PlayerT player[2];
+      vector<PlayerT> player;
+      PlayerT a;
+      player.push_back(a);
+      player.push_back(a);
+
       DieT die;
       int cth = 0;
 
@@ -73,6 +77,8 @@ int main(int argc, char * argv[]) {
       for(int i=0;i<2;i++) {
          player[i].Reset();
       }
+
+cout << "Here " << endl;
 
       cth = 0;
 
@@ -149,7 +155,7 @@ int main(int argc, char * argv[]) {
 	     }
 
              cout << "\tSimulating Attack " << endl;
-	     CasterAction(player[casterID-1],player[victimID-1], die, cth);
+	     CasterAction(player,casterID-1,victimID-1, die, cth);
 	     cout << "\t\tScore " << endl ;
 	     cout << "\t\t  Player 1: " << player[0].Sanity() << endl;
 	     cout << "\t\t  Player 2: " << player[1].Sanity() << endl;
@@ -164,7 +170,7 @@ int main(int argc, char * argv[]) {
 	     }
 
              cout << "\tSimulating Response" << endl;
-	     VictimAction(player[casterID-1],player[victimID-1], die, cth);
+	     VictimAction(player,casterID-1,victimID-1, die, cth);
 
 	     cout << "\t\tScore "<< endl ;
 	     cout << "\t\t  Player 1: " << player[0].Sanity() << endl ;

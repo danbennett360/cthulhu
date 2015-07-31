@@ -1,0 +1,15 @@
+Two player game is a mess, it should be seperated into a couple of files
+  - one file with the utility routines
+  - one file with the game 
+  - one file, or multiple files to play the game under different conditions.
+     + play the game once
+     + play the game, with set players a number of times.
+     + only record stats for games involving eye
+     + fill out the p1/p2 matrix for each type of strategy.
+
+Use C++11 and give the die a private random number generator.
+
+Top level make file to
+	clean all sub directories
+	commit to github
+	build everything

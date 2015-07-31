@@ -3,10 +3,14 @@
 #include "dice.h"
 #include "player.h"
 #include "GameLogic.h"
+#include "stats.h"
+
+#include "cliUtils.h"
 
 #include <cstdlib>
 #include <cmath>
 #include <string.h>
+#include <vector>
 
 using namespace std;
 
@@ -15,9 +19,9 @@ int MAX_PLAYERS=2;
 bool VERBOSE = false;
 int ITERATIONS = 1000;
 
-const string PROGRAM_VERSION = "1.0";
+const string PROGRAM_VERSION = "1.5";
 
-void PlayAGame(PlayerT players[], int & turns, int  & winner, DieT & die);
+int PlayAGame(PlayerV &  players, int  & winner, DieT & die);
 
 int main(int argc, char * argv[]) {
      // get a few players
@@ -33,12 +37,26 @@ int main(int argc, char * argv[]) {
 
      i=1;
      while (i< argc) {
-         if( !strcmp(argv[i],"--p1D")) {
-	     p1Strat  = DOUG;
+         if( !strcmp(argv[i],"--p1")) {
 	     i++;
-	 } else if (!strcmp(argv[i],"--p2D")) {
-	     p2Strat  = DOUG;
+	     if (i < argc) {
+	         p1Strat  = GetStrat(argv[i]);
+	         i++;
+	     } else {
+	         cerr << " --p1 requires an additional argument (D, F, ...)";
+		 cerr << "\t using random" << endl;
+		 cerr << endl;
+	     }
+	 } else if (!strcmp(argv[i],"--p2")) {
 	     i++;
+	     if (i < argc) {
+	         p2Strat  = GetStrat(argv[i]);
+	         i++;
+	     }  else {
+	         cerr << " --p1 requires an additional argument (D, F, ...)";
+		 cerr << "\t using random" << endl;
+		 cerr << endl;
+	     }
 	 } else if (!strcmp(argv[i],"--verbose")) {
              VERBOSE = true;
 	     i++;
@@ -54,18 +72,7 @@ int main(int argc, char * argv[]) {
 	         cout << "--games requires an additional argument"
 		      << ", none supplied" << endl;
 	     }
-	 /*} else if (!strcmp(argv[i],"-xml") ) {
-	     if (argc >= i+1) {
-	         doXMLSave = true;
-		 i++;
-		 XMLSaveFile = argv[i];
-		 i++;
-	     } else {
-	         cout << "-xml requires a filename, none supplied" << endl;
-		 i++;
-	     }
-	 */
-	 } else if (!strcmp(argv[i],"--raw") ) {
+	 /*} else if (!strcmp(argv[i],"--raw") ) {
 	     if (argc >= i+1) {
 	         doRAWSave = true;
 		 i++;
@@ -75,6 +82,7 @@ int main(int argc, char * argv[]) {
 	         cout << "-raw requires a filename, none supplied" << endl;
 		 i++;
 	     }
+	 */
 	 } else {
 	     cout << "Can't deal with arg " << i << " which is " << argv[i] << endl;
 	     i++;
@@ -82,12 +90,20 @@ int main(int argc, char * argv[]) {
      }
 
      DieT die;
-     PlayerT players[MAX_PLAYERS] = {p1Strat, p2Strat};
+     PlayerV players;
+     int cthulhuTokens;
+
+     PlayerT a(p1Strat), b(p2Strat);
+     players.push_back(a);
+     players.push_back(b);
+
      int totalTurns = 0;
-     int wins[MAX_PLAYERS+1];
+
+     vector<int> wins;
+     int cthulhuWins = 0;
 
      for(int i =0;i<=MAX_PLAYERS; i++) {
-         wins[i] = 0;
+         wins.push_back(0);
      }
 
      int turns;
@@ -97,11 +113,10 @@ int main(int argc, char * argv[]) {
 
      if (doRAWSave) {
          saveFile.open(RAWSaveFile.c_str());
+         saveFile << "Games: " << ITERATIONS << endl;
      }
 
-     saveFile << "Games: " << ITERATIONS << endl;
      for(int k = 0; k < ITERATIONS; k++) {
-         turns =0;
          winner = 0;
          for(int i = 0; i < MAX_PLAYERS; i++) {
             players[i].Reset();
@@ -113,7 +128,7 @@ int main(int argc, char * argv[]) {
 	     die.RecordHistory();
 	 }
 
-         PlayAGame(players, turns, winner, die);
+         turns =  PlayAGame(players, winner, die);
 
          // clean up the die.
          if (doRAWSave) {
@@ -159,29 +174,18 @@ int main(int argc, char * argv[]) {
 	     }
 	 }
 
+         AccumulateWins(players, wins, cthulhuWins);
 
-	 wins[winner] ++;
 	 totalTurns += turns;
+	 //cout << totalTurns << endl;
 	 if (VERBOSE) {
              cout << "_______________________________________________" << endl;
 	     cout << endl;
 	 }
      }
-
-     for(int i =0;i<=MAX_PLAYERS; i++) {
-         cout << i ;
-	    if (i < MAX_PLAYERS) {
-	        cout << ": (" <<  players[i].EyeStrategy()  <<") ";
-	    } else { 
-	        cout << ": Cthulhu " ;
-	    }
-	    cout  << "won " << wins[i] << "/" << ITERATIONS  << " or \t"
-	          << round(float(wins[i])/ITERATIONS * 100)
-	          << "%" << endl;
+     if(ITERATIONS > 1) {
+         PrintStats(players, wins, cthulhuWins, ITERATIONS, totalTurns);
      }
-     cout << endl;
-     cout << "The average game was " << float(totalTurns) / ITERATIONS 
-          << " turns" << endl;
 
      if (doRAWSave) {
          saveFile.close();
@@ -190,64 +194,53 @@ int main(int argc, char * argv[]) {
      return 0;
 }
 
-void PlayAGame(PlayerT players[], int & turns, int  & winner, DieT & die) {
-     int current =0, 
-         notCurrent = 1;
-
+int PlayAGame(PlayerV & players, int  & winner, DieT & die) {
+     int caster =0, 
+         victim = 1;
+     int turns = 0;
      int cthulhu = 0;
 
      int i,tmp;
-     int saneCount = MAX_PLAYERS;
+     int saneCount = CountSane(players);
 
-     for(i=0; i< MAX_PLAYERS;i++) {
-         if (VERBOSE)
-         cout << players[i]  << ", " << players[i].EyeStrategy() << endl;
+     if (VERBOSE) {
+         for(i=0; i< MAX_PLAYERS;i++) {
+             cout << players[i]  << ", " << players[i].EyeStrategy() << endl;
+	 }
+
+         cout << endl;
      }
-     if (VERBOSE)
-     cout << endl;
-
-     turns = 0;
 
      while (saneCount > 1) {
          turns ++;
-         TakeTurn(players[current],players[notCurrent], die, cthulhu);
 
-	 saneCount = 0;
-	 for(i=0;i<2;i++) {
-             if (VERBOSE)
-	     cout << " Player " << i+1 << " " << players[i] << endl;
-	     if (players[i].IsSane()) {
-                saneCount++;
-	     }
-	 }
-         if (VERBOSE) {
-	 cout << " End of turn " << turns << " saneCount = "
+         TakeATurn(players,cthulhu, caster, die);
+
+	 saneCount = CountSane(players);
+
+         if (VERBOSE) { 
+	     cout << " End of turn " << turns << " saneCount = "
 	      << saneCount << endl;
-	 cout << endl;
-	 cout << endl;
+	     cout << endl << endl;
          }
-
-	 // swap players
-	 tmp = current;
-	 current = notCurrent;
-	 notCurrent = tmp;
+	 caster = (caster+1) % players.size();
      }
 
      if (saneCount == 0) {
-         if (VERBOSE) cout << "Cthulhu wins";
+         if (VERBOSE) {
+	     cout << "Cthulhu";
+	 }
 	 winner = MAX_PLAYERS;
      } else {
-         if (players[0].IsSane()) {
-	     if (VERBOSE) cout << "Player 1 wins" ;
-	     winner = 0;
-	 } else {
-	     if (VERBOSE) cout << "Player 2 wins" ;
-	     winner = 1;
+         int tmp;
+	 winner = FindWinner(players);
+	 if (VERBOSE) {
+	    cout << "Player " << players[winner].ID();
 	 }
      }
      if (VERBOSE)  {
-         cout << " in " << turns << " turns." << endl;
+         cout << " wins in " << turns << " turns." << endl;
      }
 
-     return;
+     return turns;
 }

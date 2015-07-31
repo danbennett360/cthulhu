@@ -3,15 +3,15 @@
 using namespace std;
 extern bool VERBOSE;
 
-void CthulhuAction(PlayerT & caster, PlayerT & victim, int & cth) {
-	    if (caster.Sanity() > 0) {
-	        caster.GiveToken();
-	        cth++;
-            }
-	    if (victim.Sanity() > 0) {
-	        victim.GiveToken();
-	        cth++;
-            }
+void CthulhuAction(PlayerV & players, int & cth) {
+            int i;
+
+	    for (i=0;i<players.size();i++) {
+	        if (players[i].IsSane()) {
+		    cth++;
+		    players[i].GiveToken();
+		}
+	    }
 	    if(VERBOSE) 
 	    cout << "\tEveryone loses, except Cthulhu" << endl;
 	    return;
@@ -39,11 +39,11 @@ void TenticleAction(PlayerT & caster, PlayerT & victim, int & cth) {
 }
 
 
-void CasterAction(PlayerT & caster, PlayerT & victim, DieT & die, int &  cth){
+void CasterAction(PlayerV & players, int caster, int victim, DieT & die, int &  cth){
     switch(die.State()) {
         case YellowSign: 
-	    if (victim.Sanity() > 0) {
-	        victim.GiveToken();
+	    if (players[victim].Sanity() > 0) {
+	        players[victim].GiveToken();
 	        cth++;
 		if(VERBOSE)
 	        cout << "\tThe victim loses a token to Cthulhu" << endl;
@@ -53,12 +53,12 @@ void CasterAction(PlayerT & caster, PlayerT & victim, DieT & die, int &  cth){
 	    }
 	    break;
 	case Tentacle: 
-	    TenticleAction(caster, victim, cth);
+	    TenticleAction(players[caster], players[victim], cth);
 	    break;
 	case ElderSign: 
 	    if (cth > 0) {
 	       cth--;
-	       caster.GetToken();
+	       players[caster].GetToken();
 	       if (VERBOSE)
 	       cout << "\tThe caster gets at token from Cthuhlu" << endl;
 	    } else {
@@ -67,26 +67,26 @@ void CasterAction(PlayerT & caster, PlayerT & victim, DieT & die, int &  cth){
 	    }
 	    break;
 	case Cthulhu: 
-            CthulhuAction(caster,victim, cth);
+            CthulhuAction(players,cth);
 	    break;
 	case Eye:
 	    StateT newValue;
-	    newValue = caster.DecideResult(ATTACKER, victim.Sanity(), cth);
+	    newValue = players[caster].DecideResult(ATTACKER, players[victim].Sanity(), cth);
 	    die.Change(newValue);
 	    if (VERBOSE)
 	    cout << "\tThe caster selects " 
 	         << StateTToString(die.State()) << endl;
-            CasterAction(caster, victim, die, cth);
+            CasterAction(players,caster, victim, die, cth);
 	    break;
     }
     return;
 }
 
-void VictimAction(PlayerT & caster, PlayerT & victim, DieT & die,  int & cth){
+void VictimAction(PlayerV & players, int caster, int victim, DieT & die,  int & cth){
     switch(die.State()) {
         case YellowSign: 
-	    if (caster.Sanity() > 0) {
-	        caster.GiveToken();
+	    if (players[caster].Sanity() > 0) {
+	        players[caster].GiveToken();
 	        cth++;
 		if (VERBOSE)
 	        cout << "\tThe caster loses a token to Cthulhu" << endl;
@@ -96,12 +96,12 @@ void VictimAction(PlayerT & caster, PlayerT & victim, DieT & die,  int & cth){
 	    }
 	    break;
 	case Tentacle: 
-	    TenticleAction(caster, victim, cth);
+	    TenticleAction(players[caster], players[victim], cth);
 	    break;
 	case ElderSign: 
 	    if (cth > 0) {
 	       cth--;
-	       victim.GetToken();
+	       players[victim].GetToken();
 	       if(VERBOSE)
 	       cout << "\tThe victim gets at token from Cthuhlu" << endl;
 	    } else {
@@ -110,51 +110,119 @@ void VictimAction(PlayerT & caster, PlayerT & victim, DieT & die,  int & cth){
 	    }
 	    break;
 	case Cthulhu: 
-            CthulhuAction(caster,victim, cth);
+            CthulhuAction(players, cth);
 	    break;
 	case Eye:
-	    die.Change(victim.DecideResult(DEFENDER, caster.Sanity(), cth));
+	    die.Change(players[victim].DecideResult(DEFENDER, players[caster].Sanity(), cth));
 	    if(VERBOSE)
 	    cout << "\tThe victim selects " 
 	         << StateTToString(die.State()) << endl;
-            VictimAction(caster, victim, die, cth);
+            VictimAction(players,caster, victim, die, cth);
 	    break;
     }
     return;
 }
 
-bool TakeTurn(PlayerT  & caster, PlayerT & victim,  DieT & die, int & cthuhlu){
-   if (not victim.IsSane() ) {
+bool TakeTurn(PlayerV & players, int caster, int victim,  DieT & die, int & cthuhlu){
+   if (not players[victim].IsSane() ) {
       return false;
    }
 
    // caster attacks
    if(VERBOSE) {
        cout << "The Caster attacks: " << endl;
-       cout << "\tCaster: " << caster << endl;
-       cout << "\tVictim: " << victim << endl;
+       cout << "\tCaster: " << players[caster] << endl;
+       cout << "\tVictim: " << players[victim] << endl;
    }
-   die.Roll();
-   if (VERBOSE) 
-   cout << "\tThe caster rolls a " << StateTToString(die.State()) << endl;
-   CasterAction(caster, victim, die, cthuhlu);
-   if (VERBOSE) 
-   cout << endl;
 
+   die.Roll();
+
+   if (VERBOSE)  {
+       cout << "\tThe caster rolls a " << StateTToString(die.State()) << endl;
+   }
+
+   CasterAction(players,caster, victim, die, cthuhlu);
+
+   if (VERBOSE)  {
+       cout << endl;
+   }
 
    // victim counterattacks
   
    if(VERBOSE) {
-   cout << "The Victim counter attacks: " << endl; 
-   cout << "\tVictim: " << victim << endl;
-   cout << "\tCaster: " << caster << endl;
+       cout << "The Victim counter attacks: " << endl; 
+       cout << "\tVictim: " << players[victim] << endl;
+       cout << "\tCaster: " << players[caster] << endl;
    }
+
    die.Roll();
-   if (VERBOSE)
-   cout << "\tThe victim rolls a " << StateTToString(die.State()) << endl;
-   VictimAction(caster, victim, die, cthuhlu);
-   if (VERBOSE)
-   cout << endl;
+
+   if (VERBOSE) {
+        cout << "\tThe victim rolls a " << StateTToString(die.State()) << endl;
+   }
+
+   VictimAction(players,caster, victim, die, cthuhlu);
+
+   if (VERBOSE) {
+       cout << endl;
+   }
    
    return true;
+}
+
+int CountSane (PlayerV & players) {
+    int i;
+    int count = 0;
+
+    for (i=0;i<players.size(); i++) {
+        if (players[i].IsSane()) {
+           count ++;
+        }
+    }
+
+    return count;
+}
+
+int FindWinner(PlayerV & players) {
+    int i;
+    int winner = -1;
+    int winnerCount = 0;
+
+    for (i=0;i<players.size(); i++) {
+        if (players[i].IsSane()) {
+	    winnerCount ++;
+	    winner = i;
+        }
+    }
+
+    if (winnerCount != 1) {
+        cerr << " There is an incorrect number of winners: " << winnerCount << endl;
+	winner = -1;
+    }
+
+    return winner;
+}
+
+
+void TakeATurn(PlayerV & players,int & cthulhu, int caster, DieT & die){
+
+    int victim;
+
+    // attacker select victim
+    victim = players[caster].SelectVictim(players, cthulhu);
+
+    //cout << "Caster: " << caster << " Victim: " << victim << endl;
+
+    if (victim < 0) {
+       cerr << " Bad victim " << endl;
+       return;
+    }
+    if (VERBOSE) {
+        cout << "The victim is " << players[victim] << endl;
+    }
+
+    // then take a turn
+    TakeTurn(players,caster, victim, die, cthulhu);
+
+    return;
 }
